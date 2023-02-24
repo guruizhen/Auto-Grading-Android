@@ -1,4 +1,51 @@
 import numpy as np
+import networkx as nx
+
+
+def create_causal_graph():
+    G = nx.DiGraph()
+    G.add_node(0, name="entry")
+    G.add_node(1, name="create A")
+    G.add_node(2, name="edit A")
+    G.add_node(3, name="delete A")
+    G.add_node(4, name="create B")
+    G.add_node(5, name="edit B")
+    G.add_node(6, name="delete B")
+    G.add_edge(0, 1)
+    G.add_edge(1, 2)
+    G.add_edge(1, 3)
+    G.add_edge(0, 4)
+    G.add_edge(4, 5)
+    G.add_edge(4, 6)
+    # subax = plt.subplot(121)
+    # nx.draw(G, with_labels=True, font_weight='bold')
+    # plt.show()
+    return G
+
+
+def confounder_selection():
+    cg = create_causal_graph()
+    num_t = 10
+    num_m = len(cg.nodes)
+    w = weak_positivity_validation(num_t, num_m)
+    confounder_set_list = dict()
+    for i in range(num_m):
+        visited = [False] * num_m
+        visited[i] = True
+        confounder_set = []
+        initial_set = cg.pred[i]
+        stack = list(initial_set)
+        while len(stack) != 0:
+            j = stack.pop()
+            if not visited[j]:
+                visited[j] = True
+                if w[i, j]:
+                    confounder_set.append(j)
+                else:
+                    for n in cg.pred[j]:
+                        stack.append(n)
+        confounder_set_list[i] = confounder_set
+    print(confounder_set_list)
 
 
 def weak_positivity_validation(num_t, num_m):
@@ -36,5 +83,6 @@ def weak_positivity_validation(num_t, num_m):
 
 
 if __name__ == '__main__':
-    w = weak_positivity_validation(num_t=5, num_m=5)
-    print(w)
+    confounder_selection()
+    # print(w)
+    # g = CausalGraph()
